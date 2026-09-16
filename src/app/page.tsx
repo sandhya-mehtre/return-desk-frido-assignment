@@ -73,8 +73,8 @@ export default function HomePage() {
           placeholder="Search customer, order or reference..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="border rounded px-3 py-2 text-sm flex-1 min-w-[200px]"
-        />
+          className="border rounded px-3 py-2 text-sm flex-1 min-w-full sm:min-w-[200px]"
+          />
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as ReturnStatus | "All")}
