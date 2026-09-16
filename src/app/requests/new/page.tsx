@@ -29,18 +29,21 @@ export default function NewRequestPage() {
   const [reason, setReason] = useState<ReturnReason>("Damaged");
   const [error, setError] = useState("");
 
+  const qtyNum = Number(quantity);
+  const isValid =
+    customerName.trim() !== "" &&
+    customerEmail.trim() !== "" &&
+    orderRef.trim() !== "" &&
+    itemSku.trim() !== "" &&
+    itemName.trim() !== "" &&
+    qtyNum >= 1;
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
-    if (!customerName.trim() || !customerEmail.trim() || !orderRef.trim() || !itemSku.trim() || !itemName.trim()) {
+    if (!isValid) {
       setError("All fields are required.");
-      return;
-    }
-
-    const qty = Number(quantity);
-    if (!qty || qty < 1) {
-      setError("Quantity must be at least 1.");
       return;
     }
 
@@ -58,7 +61,7 @@ export default function NewRequestPage() {
       orderRef: orderRef.trim(),
       itemSku: itemSku.trim(),
       itemName: itemName.trim(),
-      quantity: qty,
+      quantity: qtyNum,
       reason,
     });
 
@@ -70,79 +73,96 @@ export default function NewRequestPage() {
   }
 
   return (
-    <main className="max-w-xl mx-auto p-4">
-      <button onClick={() => router.push("/")} className="text-sm text-blue-600 mb-4">
+    <main className="max-w-2xl mx-auto p-6">
+      <button
+        onClick={() => router.push("/")}
+        className="border-1 border-black text-black px-4 py-2 rounded text-sm font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+      >
         ← Back to list
       </button>
 
-      <h1 className="text-xl font-bold mb-4">Raise a Return Request</h1>
+      <h1 className="text-xl font-bold mb-1">Raise a Return Request</h1>
+      <p className="text-sm text-gray-500 mb-5">
+        Fill in the details below to submit a new return request.
+      </p>
 
       {error && (
-        <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">{error}</div>
+        <div className="bg-red-50 text-red-700 text-sm p-3 rounded border border-red-200 mb-4">
+          {error}
+        </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <label className="block text-sm mb-1">Customer name</label>
-          <input
-            type="text"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            className="border rounded px-3 py-2 text-sm w-full"
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer name</label>
+            <input
+              type="text"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer email</label>
+            <input
+              type="email"
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+              className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm mb-1">Customer email</label>
-          <input
-            type="email"
-            value={customerEmail}
-            onChange={(e) => setCustomerEmail(e.target.value)}
-            className="border rounded px-3 py-2 text-sm w-full"
-          />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Order reference</label>
+            <input
+              type="text"
+              value={orderRef}
+              onChange={(e) => setOrderRef(e.target.value)}
+              className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Item SKU</label>
+            <input
+              type="text"
+              value={itemSku}
+              onChange={(e) => setItemSku(e.target.value)}
+              className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm mb-1">Order reference</label>
-          <input
-            type="text"
-            value={orderRef}
-            onChange={(e) => setOrderRef(e.target.value)}
-            className="border rounded px-3 py-2 text-sm w-full"
-          />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Item name</label>
+            <input
+              type="text"
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+            <input
+              type="number"
+              min={1}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+            />
+          </div>
         </div>
+
         <div>
-          <label className="block text-sm mb-1">Item SKU</label>
-          <input
-            type="text"
-            value={itemSku}
-            onChange={(e) => setItemSku(e.target.value)}
-            className="border rounded px-3 py-2 text-sm w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Item name</label>
-          <input
-            type="text"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-            className="border rounded px-3 py-2 text-sm w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Quantity</label>
-          <input
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            className="border rounded px-3 py-2 text-sm w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Reason</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
           <select
             value={reason}
             onChange={(e) => setReason(e.target.value as ReturnReason)}
-            className="border rounded px-3 py-2 text-sm w-full"
+            className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
           >
             {REASONS.map((r) => (
               <option key={r} value={r}>{r}</option>
@@ -152,7 +172,8 @@ export default function NewRequestPage() {
 
         <button
           type="submit"
-          className="bg-black text-white px-4 py-2 rounded text-sm w-full"
+          disabled={!isValid}
+          className="border-1 border-black text-black px-4 py-2 rounded w-full text-sm font-medium hover:bg-black hover:text-white transition-colors cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           Submit Request
         </button>

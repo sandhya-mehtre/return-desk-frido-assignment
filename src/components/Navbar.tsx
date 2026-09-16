@@ -18,6 +18,12 @@ export default function Navbar() {
             Dashboard
           </Link>
           <Link
+            href="/requests/new"
+            className="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          >
+            New Request
+          </Link>
+          <Link
             href="/customers"
             className="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >

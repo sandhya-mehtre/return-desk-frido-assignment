@@ -56,15 +56,7 @@ export default function HomePage() {
 
   return (
     <main className="max-w-6xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <Link
-  href="/requests/new"
-  className="border-2 border-black text-black px-4 py-2 rounded text-sm font-medium hover:bg-black hover:text-white transition-colors"
->
-  + New Request
-</Link>
-      </div>
-
+    
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4 items-end">
   <div className="flex-1 min-w-full sm:min-w-[200px]">
@@ -121,6 +113,8 @@ export default function HomePage() {
       <option value="status:asc">Status</option>
     </select>
   </div>
+
+
 </div>
 
       {/* Table */}
@@ -140,7 +134,7 @@ export default function HomePage() {
                 <th className="p-3">Order</th>
                 <th className="p-3">Reason</th>
                 <th className="p-3">Status</th>
-                <th className="p-3"></th>
+                <th className="p-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -151,11 +145,11 @@ export default function HomePage() {
                   <td className="p-3">{r.orderRef}</td>
                   <td className="p-3">{r.reason}</td>
                   <td className="p-3"><StatusBadge status={r.status} /></td>
-                  <td className="p-3 text-right">
+                  <td className="p-3">
   <Link
     href={`/requests/${r.id}`}
-    className="border border-gray-300 rounded px-3 py-1 text-xs hover:bg-gray-50"
-  >
+    className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+    >
     View
   </Link>
 </td>
@@ -175,14 +169,15 @@ export default function HomePage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="border rounded px-3 py-1 disabled:opacity-40 hover:bg-gray-50 cursor-pointer"
+            className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
           >
             Prev
           </button>
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="border rounded px-3 py-1 disabled:opacity-40 hover:bg-gray-50 cursor-pointer"
+            className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+
           >
             Next
           </button>
