@@ -54,68 +54,90 @@ export default function HomePage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const isLoading = false; // no async fetch in this version, kept for clarity/future swap
 
+  const hasActiveFilters =
+    searchInput !== "" ||
+    status !== "All" ||
+    reason !== "All" ||
+    sortBy !== "createdAt" ||
+    sortOrder !== "desc";
+
+  function handleClearFilters() {
+    setSearchInput("");
+    setStatus("All");
+    setReason("All");
+    setSortBy("createdAt");
+    setSortOrder("desc");
+  }
+
   return (
     <main className="max-w-6xl mx-auto p-4">
-    
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-4 items-end">
-  <div className="flex-1 min-w-full sm:min-w-[200px]">
-    <label className="block text-xs text-gray-500 mb-1">Search</label>
-    <input
-      type="text"
-      placeholder="Customer, order or reference..."
-      value={searchInput}
-      onChange={(e) => setSearchInput(e.target.value)}
-      className="border rounded px-3 py-2 text-sm w-full"
-    />
-  </div>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 mb-4 items-end">
+        <div className="flex-1 min-w-full sm:min-w-[200px]">
+          <label className="block text-xs text-gray-500 mb-1">Search</label>
+          <input
+            type="text"
+            placeholder="Customer, order or reference..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+          />
+        </div>
 
-  <div>
-    <label className="block text-xs text-gray-500 mb-1">Status</label>
-    <select
-      value={status}
-      onChange={(e) => setStatus(e.target.value as ReturnStatus | "All")}
-      className="border rounded px-3 py-2 text-sm"
-    >
-      {STATUSES.map((s) => (
-        <option key={s} value={s}>{s}</option>
-      ))}
-    </select>
-  </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Status</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as ReturnStatus | "All")}
+            className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+          >
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
 
-  <div>
-    <label className="block text-xs text-gray-500 mb-1">Reason</label>
-    <select
-      value={reason}
-      onChange={(e) => setReason(e.target.value as ReturnReason | "All")}
-      className="border rounded px-3 py-2 text-sm"
-    >
-      {REASONS.map((r) => (
-        <option key={r} value={r}>{r}</option>
-      ))}
-    </select>
-  </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Reason</label>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value as ReturnReason | "All")}
+            className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+          >
+            {REASONS.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
 
-  <div>
-    <label className="block text-xs text-gray-500 mb-1">Sort by</label>
-    <select
-      value={`${sortBy}:${sortOrder}`}
-      onChange={(e) => {
-        const [by, order] = e.target.value.split(":");
-        setSortBy(by as RequestFilters["sortBy"]);
-        setSortOrder(order as RequestFilters["sortOrder"]);
-      }}
-      className="border rounded px-3 py-2 text-sm"
-    >
-      <option value="createdAt:desc">Newest first</option>
-      <option value="createdAt:asc">Oldest first</option>
-      <option value="customerName:asc">Customer A-Z</option>
-      <option value="status:asc">Status</option>
-    </select>
-  </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Sort by</label>
+          <select
+            value={`${sortBy}:${sortOrder}`}
+            onChange={(e) => {
+              const [by, order] = e.target.value.split(":");
+              setSortBy(by as RequestFilters["sortBy"]);
+              setSortOrder(order as RequestFilters["sortOrder"]);
+            }}
+            className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+          >
+            <option value="createdAt:desc">Newest first</option>
+            <option value="createdAt:asc">Oldest first</option>
+            <option value="customerName:asc">Customer A-Z</option>
+            <option value="status:asc">Status</option>
+          </select>
+        </div>
 
-
-</div>
+        <div>
+          <button
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters}
+            className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+          >
+            Clear filters
+          </button>
+        </div>
+      </div>
 
       {/* Table */}
       {isLoading ? (
