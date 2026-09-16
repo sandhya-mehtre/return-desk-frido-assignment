@@ -8,6 +8,7 @@ import {
   setResolution,
   addNote,
   removeRequest,
+  editDetails,
 } from "@/lib/redux/requestsSlice";
 import type { ReturnStatus, Resolution } from "@/lib/redux/requestsSlice";
 import {
@@ -17,7 +18,6 @@ import {
   isRemovable,
 } from "@/lib/domain/rules";
 import StatusBadge from "@/components/StatusBadge";
-import { editDetails } from "@/lib/redux/requestsSlice";
 
 export default function RequestDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,44 +33,17 @@ export default function RequestDetailPage() {
   const [refundAmount, setRefundAmount] = useState("");
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-const [editCustomerName, setEditCustomerName] = useState(request.customerName);
-const [editCustomerEmail, setEditCustomerEmail] = useState(request.customerEmail);
-const [editItemName, setEditItemName] = useState(request.itemName);
-const [editQuantity, setEditQuantity] = useState(String(request.quantity));
 
-function handleSaveEdit() {
-  setError("");
-
-  if (locked) {
-    setError("This request is locked and can no longer be edited.");
-    return;
-  }
-  if (!editCustomerName.trim() || !editCustomerEmail.trim() || !editItemName.trim()) {
-    setError("All fields are required.");
-    return;
-  }
-  const qty = Number(editQuantity);
-  if (!qty || qty < 1) {
-    setError("Quantity must be at least 1.");
-    return;
-  }
-
-  dispatch(
-    editDetails({
-      id: request.id,
-      customerName: editCustomerName.trim(),
-      customerEmail: editCustomerEmail.trim(),
-      itemName: editItemName.trim(),
-      quantity: qty,
-    })
-  );
-  setIsEditing(false);
-}
+  // Guard with fallbacks so hooks never crash when `request` hasn't loaded yet
+  const [editCustomerName, setEditCustomerName] = useState(request?.customerName ?? "");
+  const [editCustomerEmail, setEditCustomerEmail] = useState(request?.customerEmail ?? "");
+  const [editItemName, setEditItemName] = useState(request?.itemName ?? "");
+  const [editQuantity, setEditQuantity] = useState(String(request?.quantity ?? 1));
 
   if (!request) {
     return (
-      <main className="max-w-3xl mx-auto p-4">
-        <div className="border rounded p-8 text-center text-gray-500 text-sm">
+      <main className="max-w-3xl mx-auto p-6">
+        <div className="border rounded-lg p-8 text-center text-gray-500 text-sm bg-white">
           Request not found. It may have been removed.
         </div>
       </main>
@@ -80,6 +53,35 @@ function handleSaveEdit() {
   const nextStatuses = legalNextStatuses(request.status);
   const locked = isLocked(request.status);
   const removable = isRemovable(request.status);
+
+  function handleSaveEdit() {
+    setError("");
+
+    if (locked) {
+      setError("This request is locked and can no longer be edited.");
+      return;
+    }
+    if (!editCustomerName.trim() || !editCustomerEmail.trim() || !editItemName.trim()) {
+      setError("All fields are required.");
+      return;
+    }
+    const qty = Number(editQuantity);
+    if (!qty || qty < 1) {
+      setError("Quantity must be at least 1.");
+      return;
+    }
+
+    dispatch(
+      editDetails({
+        id: request.id,
+        customerName: editCustomerName.trim(),
+        customerEmail: editCustomerEmail.trim(),
+        itemName: editItemName.trim(),
+        quantity: qty,
+      })
+    );
+    setIsEditing(false);
+  }
 
   function handleTransition(next: ReturnStatus) {
     setError("");
@@ -121,130 +123,136 @@ function handleSaveEdit() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto p-4">
-      <button onClick={() => router.push("/")} className="text-sm text-blue-600 mb-4">
+    <main className="max-w-3xl mx-auto p-6">
+      <button
+        onClick={() => router.push("/")}
+        className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer mb-2"
+      >
         ← Back to list
       </button>
 
-      <div className="border rounded p-4 mb-4">
-        <div className="flex justify-between items-start mb-2">
+      {/* Header card — reference + status shown once */}
+      <div className="border rounded-lg p-5 mb-4 bg-white">
+        <div className="flex justify-between items-start mb-4">
           <h1 className="text-xl font-bold font-mono">{request.reference}</h1>
           <StatusBadge status={request.status} />
         </div>
-        <div className="border rounded p-4 mb-4">
-  <div className="flex justify-between items-start mb-2">
-    <h1 className="text-xl font-bold font-mono">{request.reference}</h1>
-    <StatusBadge status={request.status} />
-  </div>
 
-  {!isEditing ? (
-    <>
-<dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1 text-sm mt-4">
-          <dt className="text-gray-500">Customer</dt>
-        <dd>{request.customerName} ({request.customerEmail})</dd>
-        <dt className="text-gray-500">Order</dt>
-        <dd>{request.orderRef}</dd>
-        <dt className="text-gray-500">Item</dt>
-        <dd>{request.itemName} ({request.itemSku}) × {request.quantity}</dd>
-        <dt className="text-gray-500">Reason</dt>
-        <dd>{request.reason}</dd>
-        {request.resolution && (
+        {!isEditing ? (
           <>
-            <dt className="text-gray-500">Resolution</dt>
-            <dd>
-              {request.resolution}
-              {request.refundAmount !== null && ` — ₹${request.refundAmount}`}
-            </dd>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dt className="text-gray-500">Customer</dt>
+              <dd>{request.customerName} ({request.customerEmail})</dd>
+              <dt className="text-gray-500">Order</dt>
+              <dd>{request.orderRef}</dd>
+              <dt className="text-gray-500">Item</dt>
+              <dd>{request.itemName} ({request.itemSku}) × {request.quantity}</dd>
+              <dt className="text-gray-500">Reason</dt>
+              <dd>{request.reason}</dd>
+              {request.resolution && (
+                <>
+                  <dt className="text-gray-500">Resolution</dt>
+                  <dd>
+                    {request.resolution}
+                    {request.refundAmount !== null && ` — ₹${request.refundAmount}`}
+                  </dd>
+                </>
+              )}
+            </dl>
+
+            <div className="mt-4 pt-4 border-t">
+              {locked ? (
+                <p className="text-xs text-gray-500">
+                  Details are locked — this request has already been decided.
+                </p>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+                >
+                  Edit details
+                </button>
+              )}
+            </div>
           </>
+        ) : (
+          <div className="space-y-3 pt-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer name</label>
+                <input
+                  type="text"
+                  value={editCustomerName}
+                  onChange={(e) => setEditCustomerName(e.target.value)}
+                  className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer email</label>
+                <input
+                  type="email"
+                  value={editCustomerEmail}
+                  onChange={(e) => setEditCustomerEmail(e.target.value)}
+                  className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Item name</label>
+                <input
+                  type="text"
+                  value={editItemName}
+                  onChange={(e) => setEditItemName(e.target.value)}
+                  className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={editQuantity}
+                  onChange={(e) => setEditQuantity(e.target.value)}
+                  className="border rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={handleSaveEdit}
+                className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         )}
-      </dl>
-
-      {locked ? (
-        <p className="text-xs text-gray-500 mt-3">
-          Details are locked — this request has already been decided.
-        </p>
-      ) : (
-        <button
-          onClick={() => setIsEditing(true)}
-          className="text-sm text-blue-600 mt-3"
-        >
-          Edit details
-        </button>
-      )}
-    </>
-  ) : (
-    <div className="space-y-3 mt-4">
-      <div>
-        <label className="block text-sm mb-1">Customer name</label>
-        <input
-          type="text"
-          value={editCustomerName}
-          onChange={(e) => setEditCustomerName(e.target.value)}
-          className="border rounded px-3 py-2 text-sm w-full"
-        />
-      </div>
-      <div>
-        <label className="block text-sm mb-1">Customer email</label>
-        <input
-          type="email"
-          value={editCustomerEmail}
-          onChange={(e) => setEditCustomerEmail(e.target.value)}
-          className="border rounded px-3 py-2 text-sm w-full"
-        />
-      </div>
-      <div>
-        <label className="block text-sm mb-1">Item name</label>
-        <input
-          type="text"
-          value={editItemName}
-          onChange={(e) => setEditItemName(e.target.value)}
-          className="border rounded px-3 py-2 text-sm w-full"
-        />
-      </div>
-      <div>
-        <label className="block text-sm mb-1">Quantity</label>
-        <input
-          type="number"
-          min={1}
-          value={editQuantity}
-          onChange={(e) => setEditQuantity(e.target.value)}
-          className="border rounded px-3 py-2 text-sm w-full"
-        />
-      </div>
-      <div className="flex gap-2">
-        <button
-          onClick={handleSaveEdit}
-          className="bg-black text-white px-4 py-2 rounded text-sm"
-        >
-          Save
-        </button>
-        <button
-          onClick={() => setIsEditing(false)}
-          className="border px-4 py-2 rounded text-sm"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  )}
-</div>
       </div>
 
-      {/* Actions */}
       {error && (
-        <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">{error}</div>
+        <div className="bg-red-50 text-red-700 text-sm p-3 rounded border border-red-200 mb-4">
+          {error}
+        </div>
       )}
 
+      {/* Move request */}
       {nextStatuses.length > 0 && (
-        <div className="border rounded p-4 mb-4">
-          <h2 className="font-semibold mb-2 text-sm">Move request</h2>
+        <div className="border rounded-lg p-5 mb-4 bg-white">
+          <h2 className="font-semibold mb-3 text-sm text-gray-700">Move request</h2>
 
           {nextStatuses.includes("Approved") && (
             <div className="flex flex-wrap gap-2 mb-3">
               <select
                 value={resolution}
                 onChange={(e) => setResolutionInput(e.target.value as Resolution | "")}
-                className="border rounded px-2 py-1 text-sm"
+                className="border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
               >
                 <option value="">Select resolution...</option>
                 <option value="Refund">Refund</option>
@@ -257,49 +265,53 @@ function handleSaveEdit() {
                   placeholder="Refund amount"
                   value={refundAmount}
                   onChange={(e) => setRefundAmount(e.target.value)}
-                  className="border rounded px-2 py-1 text-sm w-32"
+                  className="border rounded px-2 py-1.5 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-black/10"
                 />
               )}
             </div>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {nextStatuses.map((next) => (
-              <div className="flex flex-wrap gap-2">
               <button
                 key={next}
                 onClick={() => handleTransition(next)}
-                className="border rounded px-3 py-1 text-sm hover:bg-gray-50"
-                
+                className={`rounded px-3 py-1.5 text-sm font-medium transition-colors  cursor-pointer ${
+                  next === "Rejected"
+                    ? "border border-red-200 text-red-600 hover:bg-red-200"
+                    : "border hover:bg-black hover:text-white"
+                }`}
               >
                 {next === "Rejected" ? "Reject" : `Move to ${next}`}
               </button>
-              </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* Remove */}
       {removable && (
-        <button
-          onClick={handleRemove}
-          className="text-sm text-red-600 mb-4"
-        >
-          Remove from desk
-        </button>
+        <div className="mb-4">
+          <button
+            onClick={handleRemove}
+            className="text-sm font-medium text-red-600 border border-red-200 rounded px-3 py-1.5 hover:bg-red-200 transition-colors cursor-pointer"
+          >
+            Remove from desk
+          </button>
+        </div>
       )}
 
       {/* Notes */}
-      <div className="border rounded p-4">
-        <h2 className="font-semibold mb-2 text-sm">Notes</h2>
-        <div className="space-y-2 mb-3">
+      <div className="border rounded-lg p-5 bg-white">
+        <h2 className="font-semibold mb-3 text-sm text-gray-700">Notes</h2>
+        <div className="space-y-3 mb-4">
           {request.notes.length === 0 ? (
             <p className="text-gray-500 text-sm">No notes yet.</p>
           ) : (
             request.notes.map((n) => (
-              <div key={n.id} className="text-sm border-l-2 pl-3">
-                <p>{n.text}</p>
-                <p className="text-xs text-gray-400">
+              <div key={n.id} className="text-sm border-l-2 border-gray-200 pl-3">
+                <p className="text-gray-800">{n.text}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
                   {new Date(n.createdAt).toLocaleString()}
                 </p>
               </div>
@@ -312,11 +324,11 @@ function handleSaveEdit() {
             placeholder="Add a note..."
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
-            className="border rounded px-3 py-2 text-sm flex-1"
+            className="border rounded px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400"
           />
           <button
             onClick={handleAddNote}
-            className="bg-black text-white px-4 py-2 rounded text-sm"
+            className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
           >
             Add
           </button>
