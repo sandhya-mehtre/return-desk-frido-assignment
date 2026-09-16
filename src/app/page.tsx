@@ -57,57 +57,71 @@ export default function HomePage() {
   return (
     <main className="max-w-6xl mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">ReturnDesk</h1>
         <Link
-          href="/requests/new"
-          className="bg-black text-white px-4 py-2 rounded text-sm"
-        >
-          + New Request
-        </Link>
+  href="/requests/new"
+  className="border-2 border-black text-black px-4 py-2 rounded text-sm font-medium hover:bg-black hover:text-white transition-colors"
+>
+  + New Request
+</Link>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Search customer, order or reference..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className="border rounded px-3 py-2 text-sm flex-1 min-w-full sm:min-w-[200px]"
-          />
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as ReturnStatus | "All")}
-          className="border rounded px-3 py-2 text-sm"
-        >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-        <select
-          value={reason}
-          onChange={(e) => setReason(e.target.value as ReturnReason | "All")}
-          className="border rounded px-3 py-2 text-sm"
-        >
-          {REASONS.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
-        <select
-          value={`${sortBy}:${sortOrder}`}
-          onChange={(e) => {
-            const [by, order] = e.target.value.split(":");
-            setSortBy(by as RequestFilters["sortBy"]);
-            setSortOrder(order as RequestFilters["sortOrder"]);
-          }}
-          className="border rounded px-3 py-2 text-sm"
-        >
-          <option value="createdAt:desc">Newest first</option>
-          <option value="createdAt:asc">Oldest first</option>
-          <option value="customerName:asc">Customer A-Z</option>
-          <option value="status:asc">Status</option>
-        </select>
-      </div>
+      <div className="flex flex-wrap gap-3 mb-4 items-end">
+  <div className="flex-1 min-w-full sm:min-w-[200px]">
+    <label className="block text-xs text-gray-500 mb-1">Search</label>
+    <input
+      type="text"
+      placeholder="Customer, order or reference..."
+      value={searchInput}
+      onChange={(e) => setSearchInput(e.target.value)}
+      className="border rounded px-3 py-2 text-sm w-full"
+    />
+  </div>
+
+  <div>
+    <label className="block text-xs text-gray-500 mb-1">Status</label>
+    <select
+      value={status}
+      onChange={(e) => setStatus(e.target.value as ReturnStatus | "All")}
+      className="border rounded px-3 py-2 text-sm"
+    >
+      {STATUSES.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  </div>
+
+  <div>
+    <label className="block text-xs text-gray-500 mb-1">Reason</label>
+    <select
+      value={reason}
+      onChange={(e) => setReason(e.target.value as ReturnReason | "All")}
+      className="border rounded px-3 py-2 text-sm"
+    >
+      {REASONS.map((r) => (
+        <option key={r} value={r}>{r}</option>
+      ))}
+    </select>
+  </div>
+
+  <div>
+    <label className="block text-xs text-gray-500 mb-1">Sort by</label>
+    <select
+      value={`${sortBy}:${sortOrder}`}
+      onChange={(e) => {
+        const [by, order] = e.target.value.split(":");
+        setSortBy(by as RequestFilters["sortBy"]);
+        setSortOrder(order as RequestFilters["sortOrder"]);
+      }}
+      className="border rounded px-3 py-2 text-sm"
+    >
+      <option value="createdAt:desc">Newest first</option>
+      <option value="createdAt:asc">Oldest first</option>
+      <option value="customerName:asc">Customer A-Z</option>
+      <option value="status:asc">Status</option>
+    </select>
+  </div>
+</div>
 
       {/* Table */}
       {isLoading ? (
@@ -138,10 +152,13 @@ export default function HomePage() {
                   <td className="p-3">{r.reason}</td>
                   <td className="p-3"><StatusBadge status={r.status} /></td>
                   <td className="p-3 text-right">
-                    <Link href={`/requests/${r.id}`} className="text-blue-600 hover:underline">
-                      View
-                    </Link>
-                  </td>
+  <Link
+    href={`/requests/${r.id}`}
+    className="border border-gray-300 rounded px-3 py-1 text-xs hover:bg-gray-50"
+  >
+    View
+  </Link>
+</td>
                 </tr>
               ))}
             </tbody>
@@ -158,14 +175,14 @@ export default function HomePage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="border rounded px-3 py-1 disabled:opacity-40"
+            className="border rounded px-3 py-1 disabled:opacity-40 hover:bg-gray-50 cursor-pointer"
           >
             Prev
           </button>
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="border rounded px-3 py-1 disabled:opacity-40"
+            className="border rounded px-3 py-1 disabled:opacity-40 hover:bg-gray-50 cursor-pointer"
           >
             Next
           </button>
