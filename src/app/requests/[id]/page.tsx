@@ -27,19 +27,27 @@ export default function RequestDetailPage() {
   const request = useAppSelector((state) =>
     state.requests.items.find((r) => r.id === id && !r.removed)
   );
-
+  
   const [noteText, setNoteText] = useState("");
   const [resolution, setResolutionInput] = useState<Resolution | "">("");
   const [refundAmount, setRefundAmount] = useState("");
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-
+  
   // Guard with fallbacks so hooks never crash when `request` hasn't loaded yet
-  const [editCustomerName, setEditCustomerName] = useState(request?.customerName ?? "");
-  const [editCustomerEmail, setEditCustomerEmail] = useState(request?.customerEmail ?? "");
-  const [editItemName, setEditItemName] = useState(request?.itemName ?? "");
-  const [editQuantity, setEditQuantity] = useState(String(request?.quantity ?? 1));
-
+  const [editCustomerName, setEditCustomerName] = useState(
+    request?.customerName ?? ""
+  );
+  const [editCustomerEmail, setEditCustomerEmail] = useState(
+    request?.customerEmail ?? ""
+  );
+  const [editItemName, setEditItemName] = useState(
+    request?.itemName ?? ""
+  );
+  const [editQuantity, setEditQuantity] = useState(
+    String(request?.quantity ?? 1)
+  );
+  
   if (!request) {
     return (
       <main className="max-w-3xl mx-auto p-6">
@@ -49,79 +57,110 @@ export default function RequestDetailPage() {
       </main>
     );
   }
-
-  const nextStatuses = legalNextStatuses(request.status);
-  const locked = isLocked(request.status);
-  const removable = isRemovable(request.status);
-
+  
+  // TypeScript now knows this is definitely defined
+  const currentRequest = request;
+  
+  const nextStatuses = legalNextStatuses(currentRequest.status);
+  const locked = isLocked(currentRequest.status);
+  const removable = isRemovable(currentRequest.status);
+  
   function handleSaveEdit() {
     setError("");
-
+  
     if (locked) {
       setError("This request is locked and can no longer be edited.");
       return;
     }
-    if (!editCustomerName.trim() || !editCustomerEmail.trim() || !editItemName.trim()) {
+  
+    if (
+      !editCustomerName.trim() ||
+      !editCustomerEmail.trim() ||
+      !editItemName.trim()
+    ) {
       setError("All fields are required.");
       return;
     }
+  
     const qty = Number(editQuantity);
+  
     if (!qty || qty < 1) {
       setError("Quantity must be at least 1.");
       return;
     }
-
+  
     dispatch(
       editDetails({
-        id: request.id,
+        id: currentRequest.id,
         customerName: editCustomerName.trim(),
         customerEmail: editCustomerEmail.trim(),
         itemName: editItemName.trim(),
         quantity: qty,
       })
     );
+  
     setIsEditing(false);
   }
-
+  
   function handleTransition(next: ReturnStatus) {
     setError("");
-
+  
     // Approved requires a valid resolution set first
     if (next === "Approved") {
       const result = validateResolution({
         resolution: resolution || null,
-        refundAmount: resolution === "Refund" ? Number(refundAmount) : null,
+        refundAmount:
+          resolution === "Refund" ? Number(refundAmount) : null,
       });
+  
       if (!result.valid) {
         setError(result.message);
         return;
       }
+  
       dispatch(
         setResolution({
-          id: request.id,
+          id: currentRequest.id,
           resolution: resolution as Resolution,
-          refundAmount: resolution === "Refund" ? Number(refundAmount) : null,
+          refundAmount:
+            resolution === "Refund" ? Number(refundAmount) : null,
         })
       );
     }
-
-    dispatch(transitionStatus({ id: request.id, status: next }));
+  
+    dispatch(
+      transitionStatus({
+        id: currentRequest.id,
+        status: next,
+      })
+    );
   }
-
+  
   function handleAddNote() {
     if (!noteText.trim()) return;
-    dispatch(addNote({ id: request.id, text: noteText.trim() }));
+  
+    dispatch(
+      addNote({
+        id: currentRequest.id,
+        text: noteText.trim(),
+      })
+    );
+  
     setNoteText("");
   }
-
+  
   function handleRemove() {
-    if (!confirm("Remove this request from the desk? It stays in storage but won't be listed.")) {
+    if (
+      !confirm(
+        "Remove this request from the desk? It stays in storage but won't be listed."
+      )
+    ) {
       return;
     }
-    dispatch(removeRequest({ id: request.id }));
+  
+    dispatch(removeRequest({ id: currentRequest.id }));
     router.push("/");
   }
-
   return (
     <main className="max-w-3xl mx-auto p-6">
       <button
