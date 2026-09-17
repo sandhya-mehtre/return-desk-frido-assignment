@@ -4,11 +4,13 @@ import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useAppSelector } from "@/lib/redux/hooks";
 import { selectFilteredRequests, RequestFilters } from "@/lib/redux/selectors";
-import type { ReturnStatus, ReturnReason } from "@/lib/redux/requestsSlice";
+
+import { ReturnStatus, ReturnReason ,restoreRequest} from "@/lib/redux/requestsSlice";
+import { useAppDispatch } from "@/lib/redux/hooks"; 
 import StatusBadge from "@/components/StatusBadge";
 
-const STATUSES: (ReturnStatus | "All")[] = [
-  "All", "Open", "In Review", "Approved", "Completed", "Rejected",
+const STATUSES: (ReturnStatus | "All" | "Removed")[] = [
+  "All", "Open", "In Review", "Approved", "Completed", "Rejected", "Removed"
 ];
 const REASONS: (ReturnReason | "All")[] = [
   "All", "Damaged", "Wrong Item", "Size Issue", "Not As Described", "Changed Mind",
@@ -18,11 +20,12 @@ const PAGE_SIZE = 10;
 export default function HomePage() {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [status, setStatus] = useState<ReturnStatus | "All">("All");
+  const [status, setStatus] = useState<ReturnStatus | "All"|"Removed">("All");
   const [reason, setReason] = useState<ReturnReason | "All">("All");
   const [sortBy, setSortBy] = useState<RequestFilters["sortBy"]>("createdAt");
   const [sortOrder, setSortOrder] = useState<RequestFilters["sortOrder"]>("desc");
   const [page, setPage] = useState(1);
+  const dispatch = useAppDispatch();
 
   // debounce: wait 300ms after typing stops before updating the real filter
   useEffect(() => {
@@ -68,6 +71,9 @@ export default function HomePage() {
     setSortBy("createdAt");
     setSortOrder("desc");
   }
+  function handleRestore(id: string) {
+    dispatch(restoreRequest({ id }));
+  }
 
   return (
     <main className="max-w-6xl mx-auto p-4">
@@ -88,7 +94,7 @@ export default function HomePage() {
       <label className="block text-xs text-gray-500 mb-1">Status</label>
       <select
         value={status}
-        onChange={(e) => setStatus(e.target.value as ReturnStatus | "All")}
+        onChange={(e) => setStatus(e.target.value as ReturnStatus | "All" | "Removed")}
         className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 w-full sm:w-auto"
       >
         {STATUSES.map((s) => (
@@ -138,6 +144,12 @@ export default function HomePage() {
       </button>
     </div>
   </div>
+  {status === "Removed" && (
+  <div className="bg-amber-50 text-amber-800 text-sm p-3 rounded mb-3">
+    Showing removed requests. These are soft-deleted — hidden from the main
+    list but still stored. Restore to bring one back.
+  </div>
+)}
 
   {/* Table */}
   {isLoading ? (
@@ -168,12 +180,17 @@ export default function HomePage() {
               <td className="p-3">{r.reason}</td>
               <td className="p-3"><StatusBadge status={r.status} /></td>
               <td className="p-3">
-                <Link
+             {status === "Removed" ?   <button
+      onClick={() => handleRestore(r.id)}
+      className="border border-green-600 text-green-700 rounded px-3 py-1 text-xs hover:bg-green-50 cursor-pointer"
+    >
+      Restore
+    </button>  :   <Link
                   href={`/requests/${r.id}`}
                   className="border-1 border-black text-black px-4 py-2 rounded text-sm disabled:opacity-40 font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
                 >
                   View
-                </Link>
+                </Link>}
               </td>
             </tr>
           ))}
@@ -183,7 +200,7 @@ export default function HomePage() {
   )}
 
   {/* Pagination */}
-  <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm gap-3 sm:gap-0">
+  <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-sm gap-3 sm:gap-0">
     <span className="text-gray-500">
       Page {page} of {totalPages} · {total} total
     </span>

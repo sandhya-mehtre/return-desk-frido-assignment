@@ -17,6 +17,13 @@ export type ReturnStatus =
 
 export type Resolution = "Refund" | "Replacement" | "Store Credit";
 
+export interface StatusChange {
+  id: string;
+  fromStatus: ReturnStatus | null; // null for the initial "created" entry
+  toStatus: ReturnStatus;
+  changedAt: string;
+}
+
 export interface Note {
   id: string;
   text: string;
@@ -37,6 +44,7 @@ export interface ReturnRequest {
   resolution: Resolution | null;
   refundAmount: number | null;
   notes: Note[];
+  statusHistory: StatusChange[];
   removed: boolean; // soft-delete flag, replaces DB deleted_at
   createdAt: string;
   updatedAt: string;
@@ -89,7 +97,15 @@ const requestsSlice = createSlice({
             resolution: null,
             refundAmount: null,
             notes: [],
-            removed: false,
+statusHistory: [
+  {
+    id: uuidv4(),
+    fromStatus: null,
+    toStatus: "Open" as ReturnStatus,
+    changedAt: now,
+  },
+],
+removed: false,
             createdAt: now,
             updatedAt: now,
           },
@@ -102,8 +118,18 @@ const requestsSlice = createSlice({
     ) {
       const req = state.items.find((r) => r.id === action.payload.id);
       if (req) {
+        const now = new Date().toISOString();
+        if (!req.statusHistory) {
+          req.statusHistory = []; // backfill for requests created before this field existed
+        }
+        req.statusHistory.push({
+          id: uuidv4(),
+          fromStatus: req.status,
+          toStatus: action.payload.status,
+          changedAt: now,
+        });
         req.status = action.payload.status;
-        req.updatedAt = new Date().toISOString();
+        req.updatedAt = now;
       }
     },
     setResolution(
@@ -155,6 +181,13 @@ const requestsSlice = createSlice({
         req.updatedAt = new Date().toISOString();
       }
     },
+    restoreRequest(state, action: PayloadAction<{ id: string }>) {
+      const req = state.items.find((r) => r.id === action.payload.id);
+      if (req) {
+        req.removed = false;
+        req.updatedAt = new Date().toISOString();
+      }
+    },
   },
 });
 
@@ -166,6 +199,7 @@ export const {
   editDetails,
   addNote,
   removeRequest,
+  restoreRequest
 } = requestsSlice.actions;
 
 export { generateReference };

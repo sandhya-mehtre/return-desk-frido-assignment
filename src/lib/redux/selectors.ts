@@ -3,7 +3,17 @@ import type { ReturnRequest, ReturnStatus, ReturnReason } from "./requestsSlice"
 
 export interface RequestFilters {
   search: string;
-  status: ReturnStatus | "All";
+  status: ReturnStatus | "All" | "Removed";
+  reason: ReturnReason | "All";
+  sortBy: "createdAt" | "updatedAt" | "customerName" | "status";
+  sortOrder: "asc" | "desc";
+  page: number;
+  pageSize: number;
+}
+
+export interface RequestFilters {
+  search: string;
+  status: ReturnStatus | "All" | "Removed";
   reason: ReturnReason | "All";
   sortBy: "createdAt" | "updatedAt" | "customerName" | "status";
   sortOrder: "asc" | "desc";
@@ -13,6 +23,10 @@ export interface RequestFilters {
 
 export function selectVisibleRequests(state: RootState): ReturnRequest[] {
   return state.requests.items.filter((r) => !r.removed);
+}
+
+export function selectRemovedRequests(state: RootState): ReturnRequest[] {
+  return state.requests.items.filter((r) => r.removed);
 }
 
 function matchesSearch(r: ReturnRequest, term: string): boolean {
@@ -29,9 +43,13 @@ export function selectFilteredRequests(
   state: RootState,
   filters: RequestFilters
 ): { rows: ReturnRequest[]; total: number } {
-  let rows = selectVisibleRequests(state);
+  // "Removed" is a special case: show soft-deleted requests instead of live ones
+  let rows =
+    filters.status === "Removed"
+      ? selectRemovedRequests(state)
+      : selectVisibleRequests(state);
 
-  if (filters.status !== "All") {
+  if (filters.status !== "All" && filters.status !== "Removed") {
     rows = rows.filter((r) => r.status === filters.status);
   }
   if (filters.reason !== "All") {

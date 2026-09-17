@@ -4,6 +4,7 @@ import type {
   ReturnReason,
   ReturnStatus,
   Resolution,
+  StatusChange
 } from "./requestsSlice";
 
 const reasons: ReturnReason[] = [
@@ -47,6 +48,23 @@ function resolutionForStatus(status: ReturnStatus): {
   }
   return { resolution: null, refundAmount: null };
 }
+const FULL_PATH: ReturnStatus[] = ["Open", "In Review", "Approved", "Completed"];
+const REJECTED_PATH: ReturnStatus[] = ["Open", "In Review", "Rejected"];
+
+function buildHistory(finalStatus: ReturnStatus, baseTime: string): StatusChange[] {
+  const path =
+    finalStatus === "Rejected"
+      ? REJECTED_PATH
+      : FULL_PATH.slice(0, FULL_PATH.indexOf(finalStatus) + 1 || 1);
+
+  const base = new Date(baseTime).getTime();
+  return path.map((status, i) => ({
+    id: uuidv4(),
+    fromStatus: i === 0 ? null : path[i - 1],
+    toStatus: status,
+    changedAt: new Date(base + i * 3600000).toISOString(), // 1 hour apart
+  }));
+}
 
 export function generateSeedRequests(): ReturnRequest[] {
   const requests: ReturnRequest[] = [];
@@ -71,6 +89,7 @@ export function generateSeedRequests(): ReturnRequest[] {
             },
           ]
         : [];
+        const statusHistory = buildHistory(status, createdAt);
 
     requests.push({
       id: uuidv4(),
@@ -88,6 +107,7 @@ export function generateSeedRequests(): ReturnRequest[] {
       resolution,
       refundAmount,
       notes,
+      statusHistory,
       removed: false,
       createdAt,
       updatedAt: createdAt,
