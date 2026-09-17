@@ -10,8 +10,6 @@ export default function Navbar() {
   const links = [
     { href: "/", label: "Dashboard" },
     { href: "/requests/new", label: "New Request" },
-    { href: "/customers", label: "Customers" },
-    { href: "/reports", label: "Reports" },
     { href: "/timeline", label: "Timeline" },
   ];
 

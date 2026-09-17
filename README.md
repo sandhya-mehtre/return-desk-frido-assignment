@@ -106,10 +106,10 @@ through and defend any part of it.
 
 ## Time spent
 
-- spent around 10 hours working on overall application from frontend side
+- spent around 12 hours working on overall application from frontend side
 from development to sanity testing all features present. 
 
 ## Additional features which I have implemented which are NOT part of scope 
 
-- TODO - Implement customers page
-- TODO - Implement reports page
+- 1. Timeline page functionality 
+- 2. Restoring soft-deleted requests
